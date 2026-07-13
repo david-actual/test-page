@@ -12,8 +12,8 @@ parameters:
   default: 'test-page'
 
 stages:
-- stage: CI
-  displayName: CI Workflow
+- stage: CICD
+  displayName: CICD Workflow
 
   jobs:
   - job: Build
@@ -37,3 +37,17 @@ stages:
         containerRegistry: registryConnectionTestPage
         repository: ${{ parameters.imageName }}
         tags: ${{ parameters.tag }}
+
+  - job: Deploy
+    displayName: Deploy
+    dependsOn: Build
+    pool: local-agent
+
+    steps:
+    - task: AzureContainerApps@1
+      displayName: Deploy to Azure Container Apps
+      inputs:
+        azureSubscription: appDeployConnectionTestPage
+        imageToDeploy: acrtestpagedm.azurecr.io/${{ parameters.imageName }}:${{ parameters.tag }}
+        containerAppName: test-page
+        resourceGroup: 'kube'
